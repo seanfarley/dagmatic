@@ -141,18 +141,28 @@ class DAG(object):
 
 def main():
     # nice little test case: has a merge, one obsolescence marker, 2 roots
-    input = r'''
+    inputs = [
+        r'''
 a-b-3-x
  \ \
   a-1-f-5
         :
         6-7-8
-'''.splitlines()
+''',
+        r'''
+  a-b-c
+   \: :
+    d-e
+''',
+    ]
 
-    daglist = parse(input)
-    for dag in daglist:
-        print('dag:')
-        dag.dump(sys.stdout)
+    for input in inputs:
+        print('input:')
+        print(input.lstrip('\n'))
+        daglist = parse(input.splitlines())
+        for dag in daglist:
+            print('dag:')
+            dag.dump(sys.stdout)
 
 
 main()
