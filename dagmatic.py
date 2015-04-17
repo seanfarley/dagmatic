@@ -87,7 +87,8 @@ def _make_daglist(grid):
                 elif row == len(grid) - 1:
                     raise err('obsolescence marker on last line')
                 elif col >= len(grid[row + 1]):
-                    raise err('obsolescence marker points past end of next line')
+                    raise err('obsolescence marker points past '
+                              'end of next line')
 
                 precursor = grid[row - 1][col]
                 successor = grid[row + 1][col]
@@ -132,11 +133,13 @@ class DAG(object):
 
     def get_parent_names(self, name):
         '''return parents of specified node as str (node names)'''
-        return [parent.name for parent in self.nodemap.get(name).parents]
+        return [parent.name
+                for parent in self.nodemap.get(name).parents]
 
     def get_precursor_names(self, name):
         '''return precursors of specified node as str (node names)'''
-        return [precursor.name for precursor in self.nodemap.get(name).precursors]
+        return [precursor.name
+                for precursor in self.nodemap.get(name).precursors]
 
     def dump(self, outfile):
         for node in self.nodemap.values():
