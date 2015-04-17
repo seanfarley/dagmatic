@@ -105,7 +105,7 @@ class DAGSyntaxError(Exception):
     def __init__(self, row, col, msg):
         self.row = row
         self.col = col
-        self.msg = msg
+        super(DAGSyntaxError, self).__init__(msg)
 
 
 class Node(object):

@@ -8,8 +8,8 @@ implemented yet, but SVG is the primary goal).
 The input language looks like this:
 
    a-b-c
-     \
-      d-e
+      \
+       d-e
 
 meaning:
 
