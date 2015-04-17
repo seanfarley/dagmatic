@@ -9,9 +9,7 @@ def test_readme_1_simple():
       \
        d-e
 '''
-    dags = _parse(input)
-    nt.assert_equal(len(dags), 1)
-    dag = dags[0]
+    dag = _parse_one(input)
     nt.assert_items_equal(dag.nodemap, ['a', 'b', 'c', 'd', 'e'])
     _assert_parents(dag, 'a', [])
     _assert_parents(dag, 'b', ['a'])
@@ -26,9 +24,7 @@ def test_readme_2_obsolescence():
    \: :
     d-e
 '''
-    dags = _parse(input)
-    nt.assert_equal(len(dags), 1)
-    dag = dags[0]
+    dag = _parse_one(input)
     nt.assert_items_equal(dag.nodemap, ['a', 'b', 'c', 'd', 'e'])
     _assert_parents(dag, 'd', ['a'])
     _assert_precursors(dag, 'a', [])
@@ -38,8 +34,52 @@ def test_readme_2_obsolescence():
     _assert_precursors(dag, 'e', ['c'])
 
 
-def _parse(input):
-    return dagmatic.parse(input.splitlines())
+def test_merge():
+    input = r'''
+a-b-3-x
+ \ \
+  7-1-f-5
+'''
+    dag = _parse_one(input)
+    _assert_parents(dag, '1', ['b', '7'])
+
+
+def test_multiple_roots():
+    input = r'''
+1-2-3
+     \
+  4-5-6-7
+'''
+    dag = _parse_one(input)
+    _assert_parents(dag, '1', [])
+    _assert_parents(dag, '4', [])
+    _assert_parents(dag, '6', ['3', '5'])
+
+
+def test_the_whole_enchilada():
+    # a merge! multiple roots! obsolescence!
+    input = r'''
+a-b-3-x
+ \ \
+  c-1-f-5
+        :
+        6-7-8
+'''
+    dag = _parse_one(input)
+    _assert_parents(dag, 'a', [])
+    _assert_parents(dag, 'c', ['a'])
+    _assert_parents(dag, 'b', ['a'])
+    _assert_parents(dag, '1', ['c', 'b'])
+    _assert_parents(dag, '6', [])
+    _assert_precursors(dag, 'x', [])
+    _assert_precursors(dag, '6', ['5'])
+    _assert_precursors(dag, '7', [])
+
+
+def _parse_one(input):
+    daglist = dagmatic.parse(input.splitlines())
+    nt.assert_equal(len(daglist), 1)
+    return daglist[0]
 
 
 def _assert_parents(dag, name, expect):
