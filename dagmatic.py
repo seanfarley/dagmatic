@@ -51,7 +51,7 @@ def _make_daglist(grid):
     def err(msg):
         return DAGSyntaxError(row, col, msg)
 
-    dag = set()                         # of Nodes
+    nodes = set()
 
     for (row, line) in enumerate(grid):
         for (col, ch) in enumerate(line):
@@ -96,9 +96,10 @@ def _make_daglist(grid):
                     raise err('obsolescence marker connected to garbage')
                 successor.precursors.append(precursor)
             elif isinstance(ch, Node):
-                dag.add(ch)
+                nodes.add(ch)
 
-    return [DAG(dag)]
+    nodemap = {node.name: node for node in nodes}
+    return [DAG(nodemap)]
 
 
 class DAGSyntaxError(Exception):
@@ -126,11 +127,19 @@ class DAG(object):
     DAG of parent/child relationships, and the newfangled directed cyclic
     graph of obsolescence markers.
     '''
-    def __init__(self, nodes):
-        self.nodes = nodes
+    def __init__(self, nodemap):
+        self.nodemap = nodemap              # map node name to Node
+
+    def get_parent_names(self, name):
+        '''return parents of specified node as str (node names)'''
+        return [parent.name for parent in self.nodemap.get(name).parents]
+
+    def get_precursor_names(self, name):
+        '''return precursors of specified node as str (node names)'''
+        return [precursor.name for precursor in self.nodemap.get(name).precursors]
 
     def dump(self, outfile):
-        for node in self.nodes:
+        for node in self.nodemap.values():
             parents = ','.join(str(p) for p in node.parents)
             obs = ''
             if node.precursors:
