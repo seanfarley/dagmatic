@@ -99,7 +99,8 @@ def _make_daglist(grid):
                 elif row == len(grid) - 1:
                     raise err('obsolescence marker on last line')
                 elif col >= len(grid[row + 1]):
-                    raise err('obsolescence marker points past end of next line')
+                    raise err('obsolescence marker points past '
+                              'end of next line')
 
                 precursor = grid[row - 1][col]
                 successor = grid[row + 1][col]
