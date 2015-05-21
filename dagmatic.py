@@ -32,16 +32,21 @@ def _read_grid(infile):
     for line in infile:
         grid.append([])
         currow = grid[-1]
-        chunks = nodefind_re.split(line.rstrip())
-        for (idx, chunk) in enumerate(chunks):
-            if idx % 2 == 1:            # must be a node (run of alphanumeric)
-                node = Node(chunk)
-                currow += [node] * len(chunk)
-            else:
-                # Must preserve every input char because of the visual
-                # nature of the input language -- need grid[i][j] to be
-                # useful!
-                currow += list(chunk)
+        if line.lstrip().startswith('||'):
+            ws, text = line.split('||')
+            currow += [ws, '||', Text(text.strip())]
+        else:
+            chunks = nodefind_re.split(line.rstrip())
+
+            for (idx, chunk) in enumerate(chunks):
+                if idx % 2 == 1:  # must be a node (run of alphanumeric)
+                    node = Node(chunk)
+                    currow += [node] * len(chunk)
+                else:
+                    # Must preserve every input char because of the visual
+                    # nature of the input language -- need grid[i][j] to be
+                    # useful!
+                    currow += list(chunk)
     return grid
 
 
@@ -51,9 +56,16 @@ def _make_daglist(grid):
     def err(msg):
         return DAGSyntaxError(row, col, msg)
 
-    dag = set()                         # of Nodes
+    ret = []                    # list of dags and transitions
+    dag = []                    # of Nodes
+
+    in_text = False
 
     for (row, line) in enumerate(grid):
+        if in_text and line and not contains_text(line):
+            ret.append(Annotation(dag))
+            dag = []
+            in_text = False
         for (col, ch) in enumerate(line):
             if ch == '-':
                 if col == 0:
@@ -108,10 +120,22 @@ def _make_daglist(grid):
                         isinstance(successor, Node)):
                     raise err('obsolescence marker connected to garbage')
                 successor.precursors.append(precursor)
-            elif isinstance(ch, Node):
-                dag.add(ch)
+            elif ch == '||' and not in_text:
+                # an ugly hack until we implement the state pattern
+                ret.append(DAG(dag))
+                dag = []
+                in_text = True
+            elif isinstance(ch, Node) or isinstance(ch, Text):
+                dag.append(ch)
 
-    return [DAG(dag)]
+    if dag:
+        if in_text:
+            dag = Annotation(dag)
+        else:
+            dag = DAG(dag)
+        ret.append(dag)
+
+    return ret
 
 
 class DAGSyntaxError(Exception):
@@ -151,6 +175,34 @@ class DAG(object):
                 obs = ' (obsoletes %s)' % (precursors,)
             print('%s -> %s%s' % (node, parents, obs), file=outfile)
 
+
+class Annotation(object):
+    '''A collection of text objects.
+    '''
+    def __init__(self, text):
+        self.text = text
+
+    def dump(self, outfile):
+        for text in self.text:
+            print('TEXT: %s' % (text), file=outfile)
+
+
+class Text(object):
+    def __init__(self, text):
+        self.text = text
+
+    def __str__(self):
+        return self.text
+
+    def __repr__(self):
+        return '<Text: %s>' % (self.text,)
+
+
+def contains_text(dag):
+    for i in dag:
+        if isinstance(i, Text):
+            return True
+    return False
 
 def main():
     # nice little test case: has a merge, one obsolescence marker, 2 roots
