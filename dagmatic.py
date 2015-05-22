@@ -34,7 +34,7 @@ def _read_grid(infile):
         currow = grid[-1]
         if line.lstrip().startswith('||'):
             ws, text = line.split('||')
-            currow += [ws, '||', Text(text.strip())]
+            currow += [ws, '||', TransitionText(text.strip())]
         else:
             chunks = nodefind_re.split(line.rstrip())
 
@@ -125,7 +125,7 @@ def _make_daglist(grid):
                 ret.append(DAG(dag))
                 dag = []
                 in_text = True
-            elif isinstance(ch, Node) or isinstance(ch, Text):
+            elif isinstance(ch, Node) or isinstance(ch, TransitionText):
                 dag.append(ch)
 
     if dag:
@@ -187,7 +187,7 @@ class Annotation(object):
             print('TEXT: %s' % (text), file=outfile)
 
 
-class Text(object):
+class TransitionText(object):
     def __init__(self, text):
         self.text = text
 
@@ -195,12 +195,12 @@ class Text(object):
         return self.text
 
     def __repr__(self):
-        return '<Text: %s>' % (self.text,)
+        return '<TransitionText: %s>' % (self.text,)
 
 
 def contains_text(dag):
     for i in dag:
-        if isinstance(i, Text):
+        if isinstance(i, TransitionText):
             return True
     return False
 
