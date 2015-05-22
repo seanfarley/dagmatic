@@ -9,7 +9,7 @@ import re
 # between them. E.g. given a line like "  \ a-b  :", the tokens of interest
 # are \, a, -, b, :. This regex is a good place to start (but now we have
 # two problems).
-nodefind_re = re.compile(r'([a-zA-Z0-9\']+)')
+nodefind_re = re.compile(r'([a-zA-Z0-9\'^]+)')
 
 
 def parse(infile):
@@ -151,6 +151,10 @@ class Node(object):
         self.name = name
         self.parents = []               # list of Node
         self.precursors = []            # list of Node
+        self.annotation = None
+
+        if '^' in name:
+            self.name, self.annotation = name.split('^', 1)
 
     def __str__(self):
         return self.name
