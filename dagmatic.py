@@ -224,6 +224,18 @@ a-b-3-x
    \:
     b'
 ''',
+        r'''
+  a-b
+
+  || hg commit --amend
+  || (safe, using evolve)
+
+  || (safe again)
+
+  a-b.c
+   \:
+    d
+'''
     ]
 
     for input in inputs:
