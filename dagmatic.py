@@ -126,7 +126,8 @@ def _make_daglist(grid):
                 dag = []
                 in_text = True
             elif isinstance(ch, Node) or isinstance(ch, TransitionText):
-                dag.append(ch)
+                if ch not in dag:
+                    dag.append(ch)
 
     if dag:
         if in_text:
