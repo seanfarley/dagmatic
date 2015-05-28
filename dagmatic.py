@@ -90,6 +90,7 @@ def _make_daglist(grid):
                         isinstance(successor, Node)):
                     raise err('horizontal obs edge connected to garbage')
                 successor.precursors.append(precursor)
+                precursor.obsolete = True
             elif ch == '\\':
                 if row == 0:
                     raise err('diagonal edge on first line')
@@ -120,6 +121,7 @@ def _make_daglist(grid):
                         isinstance(successor, Node)):
                     raise err('obsolescence marker connected to garbage')
                 successor.precursors.append(precursor)
+                precursor.obsolete = True
             elif ch == '||' and not in_text:
                 # an ugly hack until we implement the state pattern
                 ret.append(DAG(dag))
@@ -152,6 +154,7 @@ class Node(object):
         self.parents = []               # list of Node
         self.precursors = []            # list of Node
         self.annotation = None
+        self.obsolete = False
 
         if '^' in name:
             self.name, self.annotation = name.split('^', 1)
