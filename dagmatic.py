@@ -153,11 +153,14 @@ class Node(object):
         self.name = name
         self.parents = []               # list of Node
         self.precursors = []            # list of Node
-        self.annotation = None
+        self.annotation = ''
         self.obsolete = False
 
         if '^' in name:
             self.name, self.annotation = name.split('^', 1)
+
+        if self.annotation.lower() == 'o':
+            self.obsolete = True
 
     def __str__(self):
         return self.name
