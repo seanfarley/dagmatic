@@ -129,6 +129,11 @@ def _make_daglist(grid):
                 in_text = True
             elif isinstance(ch, Node) or isinstance(ch, TransitionText):
                 if ch not in dag:
+                    if isinstance(ch, Node):
+                        # set the grid location into the node
+                        ch.row = row
+                        ch.col = col
+
                     dag.append(ch)
 
     if dag:
@@ -154,6 +159,8 @@ class Node(object):
         self.parents = []               # list of Node
         self.precursors = []            # list of Node
         self.annotation = ''
+        self.row = -1
+        self.col = -1
         self.obsolete = False
 
         if '^' in name:
@@ -184,7 +191,8 @@ class DAG(object):
             if node.precursors:
                 precursors = ','.join(str(p) for p in node.precursors)
                 obs = ' (obsoletes %s)' % (precursors,)
-            print('%s -> %s%s' % (node, parents, obs), file=outfile)
+            print('%s[%d, %d] -> %s%s' % (node, node.row, node.col, parents,
+                                          obs), file=outfile)
 
 
 class Annotation(object):
