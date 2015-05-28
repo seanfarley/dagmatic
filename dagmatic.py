@@ -243,10 +243,10 @@ a-b-3-x
 '''
     ]
 
-    for input in inputs:
+    for i in inputs:
         print('input:')
-        print(input.lstrip('\n'))
-        daglist = parse(input.splitlines())
+        print(i.lstrip('\n'))
+        daglist = parse(i.splitlines())
         for dag in daglist:
             print('dag:')
             dag.dump(sys.stdout)
