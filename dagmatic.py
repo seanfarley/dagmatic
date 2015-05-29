@@ -236,6 +236,10 @@ class Node(object):
     def __repr__(self):
         return '<Node: %s>' % (self.name,)
 
+class Style(dict):
+    def __repr__(self):
+        return '<Style: %s>' % (dict.__repr__(self),)
+
 
 class DAG(object):
     '''A graph of nodes. Actually this is two overlaid graphs: the traditional
