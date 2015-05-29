@@ -261,6 +261,8 @@ class DAG(object):
             obs = ''
             if node.obsolete:
                 obs = 'obs'
+            if node.annotation == 'T':
+                obs = 'tmp'
 
             # first output the changeset node
             print(r'\node[%s] at (%d,%d) (%s) {%s};' % (obs + 'changeset',
