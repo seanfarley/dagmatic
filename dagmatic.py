@@ -132,6 +132,23 @@ def _make_daglist(grid):
                 if not (isinstance(parent, Node) and isinstance(child, Node)):
                     raise err('diagonal edge connected to garbage')
                 child.parents.append(parent)
+            elif ch == '<':
+                if row == 0:
+                    raise err('obsolescence marker on first line')
+                elif row == len(grid) - 1:
+                    raise err('obsolescence marker on last line')
+                elif col == 0:
+                    raise err('obsolescence marker at start of line')
+                elif col >= len(grid[row + 1]):
+                    raise err('obsolescence marker points past '
+                              'end of next line')
+
+                precursor = grid[row - 1][col - 1]
+                successor = grid[row + 1][col + 1]
+                if not (isinstance(parent, Node) and isinstance(child, Node)):
+                    raise err('obsolescence marker connected to garbage')
+                successor.precursors.append(precursor)
+                precursor.obsolete = True
             elif ch == ':':
                 if row == 0:
                     raise err('obsolescence marker on first line')
