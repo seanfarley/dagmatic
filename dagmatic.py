@@ -29,12 +29,28 @@ def parse(infile):
 
 def _read_grid(infile):
     grid = []
+    style = ''
     for line in infile:
         grid.append([])
         currow = grid[-1]
         if line.lstrip().startswith('||'):
             ws, text = line.split('||')
             currow += [ws, '||', TransitionText(text.strip())]
+        elif line.lstrip().startswith('{'):
+            style += line.strip()
+        elif style:
+            style += line.strip()
+            nodestyle = Style()
+            if line.rstrip().endswith('}'):
+                # parse the dictionary
+                style = style.strip('{')
+                style = style.strip('}')
+                for kv in style.split(','):
+                    key, val = kv.split(':', 1)
+                    nodestyle[key.strip()] = val.strip()
+                currow += [nodestyle]
+
+                style = ''
         else:
             chunks = nodefind_re.split(line.rstrip())
 
@@ -196,6 +212,16 @@ def _make_daglist(grid):
                         ch.col = col
 
                     dag.append(ch)
+            elif isinstance(ch, Style):
+                if 'node' not in ch:
+                    raise err('style found but no node specified')
+                for n in dag:
+                    if n.name == ch['node']:
+                        n.style = ch
+                        break
+                else:
+                    raise err('node "%s" not found' % ch['node'])
+
 
     if dag:
         if in_text:
