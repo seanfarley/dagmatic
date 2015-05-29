@@ -117,6 +117,21 @@ def _make_daglist(grid):
                 if not (isinstance(parent, Node) and isinstance(child, Node)):
                     raise err('diagonal edge connected to garbage')
                 child.parents.append(parent)
+            elif ch == '/':
+                if row == 0:
+                    raise err('diagonal edge on first line')
+                elif row == len(grid) - 1:
+                    raise err('diagonal edge on last line')
+                elif col == 0:
+                    raise err('diagonal edge at start of line')
+                elif col >= len(grid[row + 1]):
+                    raise err('diagonal edge points past end of next line')
+
+                parent = grid[row + 1][col - 1]
+                child = grid[row - 1][col + 1]
+                if not (isinstance(parent, Node) and isinstance(child, Node)):
+                    raise err('diagonal edge connected to garbage')
+                child.parents.append(parent)
             elif ch == ':':
                 if row == 0:
                     raise err('obsolescence marker on first line')
