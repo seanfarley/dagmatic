@@ -165,6 +165,24 @@ def _make_daglist(grid):
                     raise err('obsolescence marker connected to garbage')
                 successor.precursors.append(precursor)
                 precursor.obsolete = True
+            elif ch == '>':
+                if row == 0:
+                    raise err('obsolescence marker on first line')
+                elif row == len(grid) - 1:
+                    raise err('obsolescence marker on last line')
+                elif col == 0:
+                    raise err('obsolescence edge at start of line')
+                elif col >= len(grid[row - 1]):
+                    raise err('obsolescence marker points past '
+                              'end of next line')
+
+                precursor = grid[row - 1][col + 1]
+                successor = grid[row + 1][col - 1]
+                if not (isinstance(precursor, Node) and
+                        isinstance(successor, Node)):
+                    raise err('obsolescence marker connected to garbage')
+                successor.precursors.append(precursor)
+                precursor.obsolete = True
             elif ch == '||' and not in_text:
                 # an ugly hack until we implement the state pattern
                 ret.append(DAG(dag))
