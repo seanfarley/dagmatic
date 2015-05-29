@@ -255,6 +255,25 @@ class DAG(object):
             print('%s[%d, %d] -> %s%s' % (node, node.row, node.col, parents,
                                           obs), file=outfile)
 
+    def tikz(self, outfile):
+        # need to do two passes so that all nodes are defined first
+        for node in self.nodes:
+            obs = ''
+            if node.obsolete:
+                obs = 'obs'
+
+            # first output the changeset node
+            print(r'\node[%s] at (%d,%d) (%s) {%s};' % (obs + 'changeset',
+                                                        node.col, -node.row,
+                                                        node, node))
+        for node in self.nodes:
+            # output the edges
+            for p in node.parents:
+                print(r'\draw[edge] (%s) -- (%s);' % (p, node))
+
+            # output the obsolete edges
+            for p in node.precursors:
+                print(r'\draw[markeredge] (%s) -- (%s);' % (p, node))
 
 class Annotation(object):
     '''A collection of text objects.
