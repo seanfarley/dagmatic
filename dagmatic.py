@@ -223,6 +223,7 @@ class Node(object):
         self.row = -1
         self.col = -1
         self.obsolete = False
+        self.style = {}
 
         if '^' in name:
             self.name, self.annotation = name.split('^', 1)
