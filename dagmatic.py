@@ -78,6 +78,17 @@ def _make_daglist(grid):
                 if not (isinstance(parent, Node) and isinstance(child, Node)):
                     raise err('horizontal edge connected to garbage')
                 child.parents.append(parent)
+            elif ch == '|':
+                if row == 0:
+                    raise err('vertical edge on first line')
+                elif row == len(grid) - 1:
+                    raise err('vertical edge on last line')
+
+                parent = grid[row + 1][col]
+                child = grid[row - 1][col]
+                if not (isinstance(parent, Node) and isinstance(child, Node)):
+                    raise err('vertical edge connected to garbage')
+                child.parents.append(parent)
             elif ch == '.':
                 if col == 0:
                     raise err('horizontal obs edge at start of line')
