@@ -227,7 +227,7 @@ class Node(object):
         if '^' in name:
             self.name, self.annotation = name.split('^', 1)
 
-        if self.annotation.lower() == 'o':
+        if self.annotation in ('O', 'T'):
             self.obsolete = True
 
     def __str__(self):
