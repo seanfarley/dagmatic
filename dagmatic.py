@@ -36,12 +36,10 @@ def _read_grid(infile):
         if line.lstrip().startswith('||'):
             ws, text = line.split('||')
             currow += [ws, '||', TransitionText(text.strip())]
-        elif line.lstrip().startswith('{'):
+        elif line.lstrip().startswith('{') or style:
             style += line.strip()
-        elif style:
-            style += line.strip()
-            nodestyle = Style()
             if line.rstrip().endswith('}'):
+                nodestyle = Style()
                 # parse the dictionary
                 style = style.strip('{')
                 style = style.strip('}')
