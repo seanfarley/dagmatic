@@ -46,6 +46,8 @@ def _read_grid(infile):
                 style = style.strip('{')
                 style = style.strip('}')
                 for kv in style.split(','):
+                    if not kv.strip():
+                        continue
                     key, val = kv.split(':', 1)
                     nodestyle[key.strip()] = val.strip()
                 currow += [nodestyle]
