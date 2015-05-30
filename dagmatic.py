@@ -409,6 +409,7 @@ a-b-3-x
         for dag in daglist:
             print('dag:')
             dag.dump(sys.stdout)
+            dag.tikz(sys.stdout)
 
 
 main()
