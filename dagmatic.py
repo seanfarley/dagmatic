@@ -297,15 +297,15 @@ class DAG(object):
             if node.annotation == 'T':
                 obs = 'tmp'
 
+            cls = node.style.get('class') or obs + 'changeset'
             name = node.name
             if 'text' in node.style:
                 # need to check this way because 'text' could be empty
                 name = node.style['text']
 
             # first output the changeset node
-            print(r'\node[%s] at (%d,%d) (%s) {%s};' % (obs + 'changeset',
-                                                        node.col, -node.row,
-                                                        node, name))
+            print(r'\node[%s] at (%d,%d) (%s) {%s};' % (cls, node.col,
+                                                        -node.row, node, name))
         for node in self.nodes:
             # output the edges
             for p in node.parents:
