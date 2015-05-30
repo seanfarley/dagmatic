@@ -217,13 +217,15 @@ def _make_daglist(grid):
             elif isinstance(ch, Style):
                 if 'node' not in ch:
                     raise err('style found but no node specified')
-                for n in dag:
-                    if n.name == ch['node']:
-                        n.style = ch
-                        break
-                else:
-                    raise err('node "%s" not found' % ch['node'])
 
+                def match(n1, n2):
+                    if n2 == 'global':
+                        return True
+                    return n1 == n2
+
+                for n in dag:
+                    if match(n.name, ch['node']):
+                        n.style = ch
 
     if dag:
         if in_text:
