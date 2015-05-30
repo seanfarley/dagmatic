@@ -374,7 +374,32 @@ a-b-3-x
   a-b.c
    \:
     d
-'''
+''',
+        r'''
+      f
+      |
+    d-e
+   /
+  a-b-c^T
+   <:>
+    q
+
+{
+        node: e,
+        text: ,
+        class: test
+}
+{
+        node: global,
+        text: ,
+}
+{
+        node: f,
+        text: bug fix 1,
+        class: nodenote
+}
+{node: q, text: master, class: nodenote}
+''',
     ]
 
     for i in inputs:
