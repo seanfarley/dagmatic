@@ -299,6 +299,7 @@ class DAG(object):
 
             name = node.name
             if 'text' in node.style:
+                # need to check this way because 'text' could be empty
                 name = node.style['text']
 
             # first output the changeset node
