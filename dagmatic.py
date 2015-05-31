@@ -302,11 +302,18 @@ class DAG(object):
             if 'text' in node.style:
                 # need to check this way because 'text' could be empty
                 text = node.style['text']
-            text = text.replace('\n', '\\\\')
 
-            # first output the changeset node
-            print(r'\node[%s] at (%d,%d) (%s) {%s};' % (cls, node.col,
-                                                        -node.row, node, text))
+            if not isinstance(node, TransitionText):
+                print(r'\node[%s] at (%d,%d) (%s) {%s};' % (cls, node.col,
+                                                            -node.row, node,
+                                                            text))
+            else:
+                lines = text.splitlines()
+                h = len(lines) + 1
+                print('\\draw[double, double equal sign distance, -Implies]'
+                      '(%d,%d) -- node[anchor=west, align=left] (%s) {%s}'
+                      '++(0,%d);' % (node.col + 1, -(node.row - 1), node,
+                                     '\\\\'.join(lines), -h))
         for node in self.nodes:
             # output the edges
             for p in node.parents:
