@@ -309,9 +309,13 @@ class DAG(object):
                                                             text))
             else:
                 lines = text.splitlines()
+                # the first line is a command, the rest are subtexts
+                lines[0] = r'\small{\texttt{%s}}' % lines[0]
+                for i in xrange(1, len(lines)):
+                    lines[i] = r'\scriptsize\emph{%s}' % lines[i]
                 h = len(lines) + 1
-                print('\\draw[double, double equal sign distance, -Implies]'
-                      '(%d,%d) -- node[anchor=west, align=left] (%s) {%s}'
+                print('\\draw[double, double equal sign distance, -Implies] '
+                      '(%d,%d) -- node[anchor=west, align=left] (%s) {%s} '
                       '++(0,%d);' % (node.col + 1, -(node.row - 1), node,
                                      '\\\\'.join(lines), -h))
         for node in self.nodes:
