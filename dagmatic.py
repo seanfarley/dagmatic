@@ -72,16 +72,9 @@ def _make_daglist(grid):
     def err(msg):
         return DAGSyntaxError(row, col, msg)
 
-    ret = []                    # list of dags and transitions
-    dag = []                    # of Nodes
-
-    in_text = False
+    dag = []
 
     for (row, line) in enumerate(grid):
-        if in_text and line and not contains_text(line):
-            ret.append(Annotation(dag))
-            dag = []
-            in_text = False
         for (col, ch) in enumerate(line):
             if ch == '-':
                 if col == 0:
@@ -199,19 +192,19 @@ def _make_daglist(grid):
                     raise err('obsolescence marker connected to garbage')
                 successor.precursors.append(precursor)
                 precursor.obsolete = True
-            elif ch == '||' and not in_text:
-                # an ugly hack until we implement the state pattern
-                ret.append(DAG(dag))
-                dag = []
-                in_text = True
-            elif isinstance(ch, Node) or isinstance(ch, TransitionText):
-                if ch not in dag:
-                    if isinstance(ch, Node):
-                        # set the grid location into the node
-                        ch.row = row
-                        ch.col = col
+            elif isinstance(ch, Node):
+                # set the grid location into the node
+                ch.row = row
+                ch.col = col
+                ch.name += str(row * 10 + col)
+                if (isinstance(ch, TransitionText)):
+                    prevrow = grid[row - 1]
+                    if (col < len(prevrow) and
+                        isinstance(grid[row - 1][col], TransitionText)):
+                        grid[row - 1][col].append(ch)
+                        continue
 
-                    dag.append(ch)
+                dag.append(ch)
             elif isinstance(ch, Style):
                 if 'node' not in ch:
                     raise err('style found but no node specified')
@@ -225,14 +218,7 @@ def _make_daglist(grid):
                     if match(n.name, ch['node']):
                         n.style = ch
 
-    if dag:
-        if in_text:
-            dag = Annotation(dag)
-        else:
-            dag = DAG(dag)
-        ret.append(dag)
-
-    return ret
+    return DAG(dag)
 
 
 class DAGSyntaxError(Exception):
@@ -245,6 +231,7 @@ class DAGSyntaxError(Exception):
 class Node(object):
     def __init__(self, name):
         self.name = name
+        self.text = name
         self.parents = []               # list of Node
         self.precursors = []            # list of Node
         self.annotation = ''
@@ -264,6 +251,19 @@ class Node(object):
 
     def __repr__(self):
         return '<Node: %s>' % (self.name,)
+
+
+class TransitionText(Node):
+    def __init__(self, text):
+        super(TransitionText, self).__init__('t')
+        self.text = text
+
+    def __repr__(self):
+        return '<TransitionText: %s>' % (self.text,)
+
+    def append(self, tnode):
+        self.text += '\n' + tnode.text
+
 
 class Style(dict):
     def __repr__(self):
@@ -298,14 +298,15 @@ class DAG(object):
                 obs = 'tmp'
 
             cls = node.style.get('class') or obs + 'changeset'
-            name = node.name
+            text = node.text
             if 'text' in node.style:
                 # need to check this way because 'text' could be empty
-                name = node.style['text']
+                text = node.style['text']
+            text = text.replace('\n', '\\\\')
 
             # first output the changeset node
             print(r'\node[%s] at (%d,%d) (%s) {%s};' % (cls, node.col,
-                                                        -node.row, node, name))
+                                                        -node.row, node, text))
         for node in self.nodes:
             # output the edges
             for p in node.parents:
@@ -315,33 +316,6 @@ class DAG(object):
             for p in node.precursors:
                 print(r'\draw[markeredge] (%s) -- (%s);' % (p, node))
 
-class Annotation(object):
-    '''A collection of text objects.
-    '''
-    def __init__(self, text):
-        self.text = text
-
-    def dump(self, outfile):
-        for text in self.text:
-            print('TEXT: %s' % (text), file=outfile)
-
-
-class TransitionText(object):
-    def __init__(self, text):
-        self.text = text
-
-    def __str__(self):
-        return self.text
-
-    def __repr__(self):
-        return '<TransitionText: %s>' % (self.text,)
-
-
-def contains_text(dag):
-    for i in dag:
-        if isinstance(i, TransitionText):
-            return True
-    return False
 
 def main():
     # nice little test case: has a merge, one obsolescence marker, 2 roots
@@ -368,8 +342,6 @@ a-b-3-x
 
   || hg commit --amend
   || (safe, using evolve)
-
-  || (safe again)
 
   a-b.c
    \:
@@ -405,11 +377,10 @@ a-b-3-x
     for i in inputs:
         print('input:')
         print(i.lstrip('\n'))
-        daglist = parse(i.splitlines())
-        for dag in daglist:
-            print('dag:')
-            dag.dump(sys.stdout)
-            dag.tikz(sys.stdout)
+        dag = parse(i.splitlines())
+        print('dag:')
+        dag.dump(sys.stdout)
+        dag.tikz(sys.stdout)
 
 
 main()
