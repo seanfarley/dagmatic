@@ -13,13 +13,13 @@ The input language looks like this::
 
 meaning:
 
-  * a is the parent of b
-  * b is the parent of c and d
-  * d is the parent of e
+  * ``a`` is the parent of ``b``
+  * ``b`` is the parent of c and ``d``
+  * ``d`` is the parent of ``e``
 
 History goes left-to-right and top-to-bottom. Currently there are only
-two ways to express a parent-child relationship: horizontal (-) and
-diagonal (\). This might change in future.
+two ways to express a parent-child relationship: horizontal (``-``) and
+diagonal (``\``). This might change in future.
 
 dagmatic also lets you express changeset obsolescence (ie.
 precursor/successor relationships)::
@@ -28,7 +28,7 @@ precursor/successor relationships)::
    \: :
     d-e
 
-Here, d is the successor of b and e is the successor of c.
+Here, ``d`` is the successor of ``b`` and ``e`` is the successor of c.
 Obsolescence markers can only be vertical.
 
 dagmatic will also let you describe a series of DAGs using a
