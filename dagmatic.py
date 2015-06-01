@@ -337,7 +337,7 @@ class DAG(object):
                       file=outfile)
 
 
-def main():
+if __name__ == '__main__':
     # nice little test case: has a merge, one obsolescence marker, 2 roots
     inputs = [
         r'''
@@ -401,6 +401,3 @@ a-b-3-x
         print('dag:')
         dag.dump(sys.stdout)
         dag.tikz(sys.stdout)
-
-
-main()
