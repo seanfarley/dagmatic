@@ -1,9 +1,9 @@
 dagmatic
 ========
 
-dagmatic is a tool to parse a custom ASCII-art representation of
-Mercurial repositories and render them in a variety of forms (none
-implemented yet, but SVG is the primary goal).
+dagmatic is a tool to parse a custom ASCII-art representation of Mercurial
+repositories and render them in a variety of forms (none implemented yet, but
+SVG is the primary goal).
 
 The input language looks like this::
 
@@ -17,9 +17,9 @@ meaning:
   * ``b`` is the parent of c and ``d``
   * ``d`` is the parent of ``e``
 
-History goes left-to-right and top-to-bottom. Currently there are only
-two ways to express a parent-child relationship: horizontal (``-``) and
-diagonal (``\``). This might change in future.
+History goes left-to-right and top-to-bottom. Currently, there are a few ways
+to express a parent-child relationship: horizontal (``-``), vertical (``|``)
+lower diagonal (``\``), upper diagonal (``/``). This might change in future.
 
 dagmatic also lets you express changeset obsolescence (ie.
 precursor/successor relationships)::
@@ -28,8 +28,17 @@ precursor/successor relationships)::
    \: :
     d-e
 
-Here, ``d`` is the successor of ``b`` and ``e`` is the successor of c.
-Obsolescence markers can only be vertical.
+Here, ``d`` is the successor of ``b`` and ``e`` is the successor of ``c``. You
+can also specify diagonal markers::
+
+  a-b-c
+   \:>
+    d
+
+Now, ``d`` is the successor of both ``b`` and ``c``. The current ways to
+express a precursor-successor relationship are: horizontal (``.``), vertical
+(``:``), lower diagonal (``<``) and upper diagonal (``>``) (think of just the
+lower part of the angle bracket). This might change in the future.
 
 dagmatic will also let you describe a series of DAGs using a
 transition marker::
