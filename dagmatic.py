@@ -215,7 +215,7 @@ def _make_daglist(grid):
 
                 for n in dag:
                     if match(n.name, ch['node']):
-                        n.style = ch
+                        n._style = ch
 
     return DAG(dag)
 
@@ -237,7 +237,7 @@ class Node(object):
         self.row = -1
         self.col = -1
         self.obsolete = False
-        self.style = {}
+        self._style = {}
 
         if '^' in name:
             self.name, self.annotation = name.split('^', 1)
@@ -255,8 +255,8 @@ class Node(object):
     def text(self):
         if self._text is None:
             self._text = self.name
-            if 'text' in self.style:
-                self._text = self.style['text']
+            if 'text' in self._style:
+                self._text = self._style['text']
         return self._text
 
 class TransitionText(Node):
@@ -303,7 +303,7 @@ class DAG(object):
             if node.annotation == 'T':
                 obs = 'tmp'
 
-            cls = node.style.get('class') or obs + 'changeset'
+            cls = node._style.get('class') or obs + 'changeset'
 
             if not isinstance(node, TransitionText):
                 print(r'\node[%s] at (%d,%d) (%s) {%s};' % (cls, node.col,
