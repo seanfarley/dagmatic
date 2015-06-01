@@ -40,8 +40,6 @@ transition marker:
 
   a-b-c
 
-(not implemented yet)
-
 
 Usage
 -----
