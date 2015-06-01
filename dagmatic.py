@@ -23,9 +23,14 @@ def parse(text):
     # or a single non-node character.
     text = text.splitlines()
     grid = _read_grid(text)
+    dag = []
 
     # Now turn the grid into an AST-like thing: the DAGList.
-    return _make_daglist(grid)
+    for (row, line) in enumerate(grid):
+        for (col, ch) in enumerate(line):
+            ch.parse(dag, grid, row, col)
+
+    return DAG(dag)
 
 
 def _read_grid(infile):
@@ -66,16 +71,6 @@ def _read_grid(infile):
                     # useful!
                     currow += [types[c] for c in chunk]
     return grid
-
-
-def _make_daglist(grid):
-    dag = []
-
-    for (row, line) in enumerate(grid):
-        for (col, ch) in enumerate(line):
-            ch.parse(dag, grid, row, col)
-
-    return DAG(dag)
 
 
 class DAG(object):
