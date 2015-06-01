@@ -308,7 +308,8 @@ class DAG(object):
             if not isinstance(node, TransitionText):
                 print(r'\node[%s] at (%d,%d) (%s) {%s};' % (cls, node.col,
                                                             -node.row, node,
-                                                            node.text))
+                                                            node.text),
+                      file=outfile)
             else:
                 lines = node.text.splitlines()
                 # the first line is a command, the rest are subtexts
@@ -318,15 +319,18 @@ class DAG(object):
                 print('\\draw[double, double equal sign distance, -Implies] '
                       '(%d,%d) -- node[anchor=west, align=left] (%s) {%s} '
                       '++(0,%d);' % (node.col + 1, -(node.row - 1), node,
-                                     '\\\\'.join(lines), -(len(lines) + 1)))
+                                     '\\\\'.join(lines), -(len(lines) + 1)),
+                      file=outfile)
+
         for node in self.nodes:
             # output the edges
             for p in node.parents:
-                print(r'\draw[edge] (%s) -- (%s);' % (p, node))
+                print(r'\draw[edge] (%s) -- (%s);' % (p, node), file=outfile)
 
             # output the obsolete edges
             for p in node.precursors:
-                print(r'\draw[markeredge] (%s) -- (%s);' % (p, node))
+                print(r'\draw[markeredge] (%s) -- (%s);' % (p, node),
+                      file=outfile)
 
 
 def main():
