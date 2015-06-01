@@ -191,9 +191,10 @@ def _make_daglist(grid):
                 successor.precursors.append(precursor)
                 precursor.obsolete = True
             elif isinstance(ch, Node):
-                # set the grid location into the node
-                ch.row = row
-                ch.col = col
+                # set the grid location into the node, if not already set
+                if ch.row == -1:
+                    ch.row = row
+                    ch.col = col
                 if (isinstance(ch, TransitionText)):
                     prevrow = grid[row - 1]
                     if (col < len(prevrow) and
