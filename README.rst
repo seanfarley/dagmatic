@@ -5,7 +5,7 @@ dagmatic is a tool to parse a custom ASCII-art representation of
 Mercurial repositories and render them in a variety of forms (none
 implemented yet, but SVG is the primary goal).
 
-The input language looks like this:
+The input language looks like this::
 
    a-b-c
      \
@@ -22,7 +22,7 @@ two ways to express a parent-child relationship: horizontal (-) and
 diagonal (\). This might change in future.
 
 dagmatic also lets you express changeset obsolescence (ie.
-precursor/successor relationships):
+precursor/successor relationships)::
 
   a-b-c
    \: :
@@ -32,7 +32,7 @@ Here, d is the successor of b and e is the successor of c.
 Obsolescence markers can only be vertical.
 
 dagmatic will also let you describe a series of DAGs using a
-transition marker:
+transition marker::
 
   a-b
 
