@@ -20,9 +20,6 @@ def parse(text):
     # or a single non-node character.
     text = text.splitlines()
     grid = _read_grid(text)
-    print('grid:')
-    for line in grid:
-        print(line)
 
     # Now turn the grid into an AST-like thing: the DAGList.
     return _make_daglist(grid)
