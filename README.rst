@@ -14,7 +14,7 @@ The input language looks like this::
 meaning:
 
   * ``a`` is the parent of ``b``
-  * ``b`` is the parent of c and ``d``
+  * ``b`` is the parent of ``c`` and ``d``
   * ``d`` is the parent of ``e``
 
 History goes left-to-right and top-to-bottom. Currently, there are a few ways
