@@ -12,13 +12,14 @@ import re
 nodefind_re = re.compile(r'([a-zA-Z0-9\'^]+)')
 
 
-def parse(infile):
+def parse(text):
     '''Read a sequence of lines. Return a DAGList.
     '''
     # First step: turn input lines into a "grid" of character cells.
     # grid[i][j] tells us what is occupying cell (i,j): either a node
     # or a single non-node character.
-    grid = _read_grid(infile)
+    text = text.splitlines()
+    grid = _read_grid(text)
     print('grid:')
     for line in grid:
         print(line)
@@ -396,7 +397,7 @@ a-b-3-x
     for i in inputs:
         print('input:')
         print(i.lstrip('\n'))
-        dag = parse(i.splitlines())
+        dag = parse(i)
         print('dag:')
         dag.dump(sys.stdout)
         dag.tikz(sys.stdout)
