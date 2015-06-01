@@ -315,11 +315,10 @@ class DAG(object):
                 lines[0] = r'\small{\texttt{%s}}' % lines[0]
                 for i in xrange(1, len(lines)):
                     lines[i] = r'\scriptsize\emph{%s}' % lines[i]
-                h = len(lines) + 1
                 print('\\draw[double, double equal sign distance, -Implies] '
                       '(%d,%d) -- node[anchor=west, align=left] (%s) {%s} '
                       '++(0,%d);' % (node.col + 1, -(node.row - 1), node,
-                                     '\\\\'.join(lines), -h))
+                                     '\\\\'.join(lines), -(len(lines) + 1)))
         for node in self.nodes:
             # output the edges
             for p in node.parents:
