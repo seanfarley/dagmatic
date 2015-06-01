@@ -196,7 +196,6 @@ def _make_daglist(grid):
                 # set the grid location into the node
                 ch.row = row
                 ch.col = col
-                ch.name += str(row * 10 + col)
                 if (isinstance(ch, TransitionText)):
                     prevrow = grid[row - 1]
                     if (col < len(prevrow) and
@@ -247,7 +246,7 @@ class Node(object):
             self.obsolete = True
 
     def __str__(self):
-        return self.name
+        return self.name + str(self.row * 10 + self.col)
 
     def __repr__(self):
         return '<Node: %s>' % (self.name,)
