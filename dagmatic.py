@@ -230,7 +230,7 @@ class DAGSyntaxError(Exception):
 class Node(object):
     def __init__(self, name):
         self.name = name
-        self.text = name
+        self._text = None
         self.parents = []               # list of Node
         self.precursors = []            # list of Node
         self.annotation = ''
@@ -251,17 +251,24 @@ class Node(object):
     def __repr__(self):
         return '<Node: %s>' % (self.name,)
 
+    @property
+    def text(self):
+        if self._text is None:
+            self._text = self.name
+            if 'text' in self.style:
+                self._text = self.style['text']
+        return self._text
 
 class TransitionText(Node):
     def __init__(self, text):
         super(TransitionText, self).__init__('t')
-        self.text = text
+        self._text = text
 
     def __repr__(self):
         return '<TransitionText: %s>' % (self.text,)
 
     def append(self, tnode):
-        self.text += '\n' + tnode.text
+        self._text += '\n' + tnode.text
 
 
 class Style(dict):
@@ -297,17 +304,13 @@ class DAG(object):
                 obs = 'tmp'
 
             cls = node.style.get('class') or obs + 'changeset'
-            text = node.text
-            if 'text' in node.style:
-                # need to check this way because 'text' could be empty
-                text = node.style['text']
 
             if not isinstance(node, TransitionText):
                 print(r'\node[%s] at (%d,%d) (%s) {%s};' % (cls, node.col,
                                                             -node.row, node,
-                                                            text))
+                                                            node.text))
             else:
-                lines = text.splitlines()
+                lines = node.text.splitlines()
                 # the first line is a command, the rest are subtexts
                 lines[0] = r'\small{\texttt{%s}}' % lines[0]
                 for i in xrange(1, len(lines)):
