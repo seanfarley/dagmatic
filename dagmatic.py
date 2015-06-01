@@ -398,4 +398,3 @@ a-b-3-x
         dag = parse(i)
         print('dag:')
         dag.dump(sys.stdout)
-        dag.tikz(sys.stdout)
