@@ -224,6 +224,8 @@ class DAGSyntaxError(Exception):
         self.row = row
         self.col = col
         self.msg = msg
+        msg = 'Syntax error at (%d, %d): %s' % (row, col, msg)
+        super(DAGSyntaxError, self).__init__(msg)
 
 
 class Node(object):
