@@ -5,6 +5,9 @@ from __future__ import print_function
 import sys
 import re
 
+from nodes import TransitionText, Node, Style
+from edges import types
+
 # We're looking for node labels (runs of alphanumeric chars) and the edges
 # between them. E.g. given a line like "  \ a-b  :", the tokens of interest
 # are \, a, -, b, :. This regex is a good place to start (but now we have
@@ -33,7 +36,8 @@ def _read_grid(infile):
         currow = grid[-1]
         if line.lstrip().startswith('||'):
             ws, text = line.split('||')
-            currow += [ws, '||', TransitionText(text.strip())]
+            currow += [types[c] for c in ws]
+            currow += [types['||'], TransitionText(text.strip())]
         elif line.lstrip().startswith('{') or style:
             style += line.strip()
             if line.rstrip().endswith('}'):
@@ -60,247 +64,18 @@ def _read_grid(infile):
                     # Must preserve every input char because of the visual
                     # nature of the input language -- need grid[i][j] to be
                     # useful!
-                    currow += list(chunk)
+                    currow += [types[c] for c in chunk]
     return grid
 
 
 def _make_daglist(grid):
-    row = col = None
-
-    def err(msg):
-        return DAGSyntaxError(row, col, msg)
-
     dag = []
 
     for (row, line) in enumerate(grid):
         for (col, ch) in enumerate(line):
-            if ch == '-':
-                if col == 0:
-                    raise err('horizontal edge at start of line')
-                elif col == len(line) - 1:
-                    raise err('horizontal edge at end of line')
-
-                parent = line[col - 1]
-                child = line[col + 1]
-                if not (isinstance(parent, Node) and isinstance(child, Node)):
-                    raise err('horizontal edge connected to garbage')
-                child.parents.append(parent)
-            elif ch == '|':
-                if row == 0:
-                    raise err('vertical edge on first line')
-                elif row == len(grid) - 1:
-                    raise err('vertical edge on last line')
-
-                parent = grid[row + 1][col]
-                child = grid[row - 1][col]
-                if not (isinstance(parent, Node) and isinstance(child, Node)):
-                    raise err('vertical edge connected to garbage')
-                child.parents.append(parent)
-            elif ch == '.':
-                if col == 0:
-                    raise err('horizontal obs edge at start of line')
-                elif col == len(line) - 1:
-                    raise err('horizontal obs edge at end of line')
-
-                precursor = line[col - 1]
-                successor = line[col + 1]
-                if not (isinstance(precursor, Node) and
-                        isinstance(successor, Node)):
-                    raise err('horizontal obs edge connected to garbage')
-                successor.precursors.append(precursor)
-                precursor.obsolete = True
-            elif ch == '\\':
-                if row == 0:
-                    raise err('diagonal edge on first line')
-                elif row == len(grid) - 1:
-                    raise err('diagonal edge on last line')
-                elif col == 0:
-                    raise err('diagonal edge at start of line')
-                elif col >= len(grid[row + 1]):
-                    raise err('diagonal edge points past end of next line')
-
-                parent = grid[row - 1][col - 1]
-                child = grid[row + 1][col + 1]
-                if not (isinstance(parent, Node) and isinstance(child, Node)):
-                    raise err('diagonal edge connected to garbage')
-                child.parents.append(parent)
-            elif ch == '/':
-                if row == 0:
-                    raise err('diagonal edge on first line')
-                elif row == len(grid) - 1:
-                    raise err('diagonal edge on last line')
-                elif col == 0:
-                    raise err('diagonal edge at start of line')
-                elif col >= len(grid[row + 1]):
-                    raise err('diagonal edge points past end of next line')
-
-                parent = grid[row + 1][col - 1]
-                child = grid[row - 1][col + 1]
-                if not (isinstance(parent, Node) and isinstance(child, Node)):
-                    raise err('diagonal edge connected to garbage')
-                child.parents.append(parent)
-            elif ch == '<':
-                if row == 0:
-                    raise err('obsolescence marker on first line')
-                elif row == len(grid) - 1:
-                    raise err('obsolescence marker on last line')
-                elif col == 0:
-                    raise err('obsolescence marker at start of line')
-                elif col >= len(grid[row + 1]):
-                    raise err('obsolescence marker points past '
-                              'end of next line')
-
-                precursor = grid[row - 1][col - 1]
-                successor = grid[row + 1][col + 1]
-                if not (isinstance(parent, Node) and isinstance(child, Node)):
-                    raise err('obsolescence marker connected to garbage')
-                successor.precursors.append(precursor)
-                precursor.obsolete = True
-            elif ch == ':':
-                if row == 0:
-                    raise err('obsolescence marker on first line')
-                elif row == len(grid) - 1:
-                    raise err('obsolescence marker on last line')
-                elif col >= len(grid[row + 1]):
-                    raise err('obsolescence marker points past '
-                              'end of next line')
-
-                precursor = grid[row - 1][col]
-                successor = grid[row + 1][col]
-                if not (isinstance(precursor, Node) and
-                        isinstance(successor, Node)):
-                    raise err('obsolescence marker connected to garbage')
-                successor.precursors.append(precursor)
-                precursor.obsolete = True
-            elif ch == '>':
-                if row == 0:
-                    raise err('obsolescence marker on first line')
-                elif row == len(grid) - 1:
-                    raise err('obsolescence marker on last line')
-                elif col == 0:
-                    raise err('obsolescence edge at start of line')
-                elif col >= len(grid[row - 1]):
-                    raise err('obsolescence marker points past '
-                              'end of next line')
-
-                precursor = grid[row - 1][col + 1]
-                successor = grid[row + 1][col - 1]
-                if not (isinstance(precursor, Node) and
-                        isinstance(successor, Node)):
-                    raise err('obsolescence marker connected to garbage')
-                successor.precursors.append(precursor)
-                precursor.obsolete = True
-            elif isinstance(ch, Node):
-                # set the grid location into the node, if not already set
-                if ch.row == -1:
-                    ch.row = row
-                    ch.col = col
-                if (isinstance(ch, TransitionText)):
-                    prevrow = grid[row - 1]
-                    if (col < len(prevrow) and
-                        isinstance(grid[row - 1][col], TransitionText)):
-                        grid[row - 1][col].append(ch)
-                        continue
-
-                dag.append(ch)
-            elif isinstance(ch, Style):
-                if 'node' not in ch:
-                    raise err('style found but no node specified')
-
-                def match(n1, n2):
-                    if n2 == 'global':
-                        return True
-                    return n1 == n2
-
-                for n in dag:
-                    if match(n.name, ch['node']):
-                        n._style = ch
+            ch.parse(dag, grid, row, col)
 
     return DAG(dag)
-
-
-class DAGSyntaxError(Exception):
-    def __init__(self, row, col, msg):
-        self.row = row
-        self.col = col
-        self.msg = msg
-        msg = 'Syntax error at (%d, %d): %s' % (row, col, msg)
-        super(DAGSyntaxError, self).__init__(msg)
-
-
-class Node(object):
-    def __init__(self, name):
-        self.name = name
-        self._text = None
-        self.parents = []               # list of Node
-        self.precursors = []            # list of Node
-        self.annotation = ''
-        self.row = -1
-        self.col = -1
-        self.obsolete = False
-        self._style = {}
-
-        if '^' in name:
-            self.name, self.annotation = name.split('^', 1)
-
-        if self.annotation in ('O', 'T'):
-            self.obsolete = True
-
-    def __str__(self):
-        return self.name + str(self.row * 10 + self.col)
-
-    def __repr__(self):
-        return '<Node: %s>' % (self.name,)
-
-    @property
-    def text(self):
-        if self._text is None:
-            self._text = self.name
-            if 'text' in self._style:
-                self._text = self._style['text']
-        return self._text
-
-    def tikz(self, outfile):
-        obs = ''
-        if self.obsolete:
-            obs = 'obs'
-        if self.annotation == 'T':
-            obs = 'tmp'
-
-        cls = self._style.get('class') or obs + 'changeset'
-
-        print(r'\node[%s] at (%d,%d) (%s) {%s};' % (cls, self.col, -self.row,
-                                                    self, self.text),
-              file=outfile)
-
-
-class TransitionText(Node):
-    def __init__(self, text):
-        super(TransitionText, self).__init__('t')
-        self._text = text
-
-    def __repr__(self):
-        return '<TransitionText: %s>' % (self.text,)
-
-    def append(self, tnode):
-        self._text += '\n' + tnode.text
-
-    def tikz(self, outfile):
-        lines = self.text.splitlines()
-        # the first line is a command, the rest are subtexts
-        lines[0] = r'\small{\texttt{%s}}' % lines[0]
-        for i in xrange(1, len(lines)):
-            lines[i] = r'\scriptsize\emph{%s}' % lines[i]
-        print('\\draw[double, double equal sign distance, -Implies] '
-              '(%d,%d) -- node[anchor=west, align=left] (%s) {%s} '
-              '++(0,%d);' % (self.col + 1, -(self.row - 1), self,
-                             '\\\\'.join(lines), -(len(lines) + 1)),
-              file=outfile)
-
-
-class Style(dict):
-    def __repr__(self):
-        return '<Style: %s>' % (dict.__repr__(self),)
 
 
 class DAG(object):
