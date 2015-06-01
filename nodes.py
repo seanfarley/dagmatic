@@ -95,7 +95,7 @@ class TransitionText(Node):
             lines[i] = r'\scriptsize\emph{%s}' % lines[i]
         print('\\draw[double, double equal sign distance, -Implies] '
               '(%d,%d) -- node[anchor=west, align=left] (%s) {%s} '
-              '++(0,%d);' % (self.col + 1, -(self.row - 1), self,
+              '++(0,%d);' % (self.col - 1, -(self.row - 1), self,
                              '\\\\'.join(lines), -(len(lines) + 1)),
               file=outfile)
 
