@@ -81,6 +81,9 @@ class TransitionText(Node):
             prevtext = grid[row - 1][col]
             if isinstance(prevtext, TransitionText):
                 prevtext.append(self)
+                # remove from dag list since we're appending
+                if self in dag:
+                    dag.remove(self)
         except IndexError:
             pass
 
