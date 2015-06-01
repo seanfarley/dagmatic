@@ -47,6 +47,13 @@ Usage
 Too early to document. See the source code.
 
 
+TODO
+----
+
+  * use visitor pattern insteatd of tikz() method
+  * use state pattern for parsing
+
+
 Credits, contacts
 -----------------
 
