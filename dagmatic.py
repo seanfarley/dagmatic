@@ -259,6 +259,20 @@ class Node(object):
                 self._text = self._style['text']
         return self._text
 
+    def tikz(self, outfile):
+        obs = ''
+        if self.obsolete:
+            obs = 'obs'
+        if self.annotation == 'T':
+            obs = 'tmp'
+
+        cls = self._style.get('class') or obs + 'changeset'
+
+        print(r'\node[%s] at (%d,%d) (%s) {%s};' % (cls, self.col, -self.row,
+                                                    self, self.text),
+              file=outfile)
+
+
 class TransitionText(Node):
     def __init__(self, text):
         super(TransitionText, self).__init__('t')
@@ -269,6 +283,18 @@ class TransitionText(Node):
 
     def append(self, tnode):
         self._text += '\n' + tnode.text
+
+    def tikz(self, outfile):
+        lines = self.text.splitlines()
+        # the first line is a command, the rest are subtexts
+        lines[0] = r'\small{\texttt{%s}}' % lines[0]
+        for i in xrange(1, len(lines)):
+            lines[i] = r'\scriptsize\emph{%s}' % lines[i]
+        print('\\draw[double, double equal sign distance, -Implies] '
+              '(%d,%d) -- node[anchor=west, align=left] (%s) {%s} '
+              '++(0,%d);' % (self.col + 1, -(self.row - 1), self,
+                             '\\\\'.join(lines), -(len(lines) + 1)),
+              file=outfile)
 
 
 class Style(dict):
@@ -297,30 +323,7 @@ class DAG(object):
     def tikz(self, outfile):
         # need to do two passes so that all nodes are defined first
         for node in self.nodes:
-            obs = ''
-            if node.obsolete:
-                obs = 'obs'
-            if node.annotation == 'T':
-                obs = 'tmp'
-
-            cls = node._style.get('class') or obs + 'changeset'
-
-            if not isinstance(node, TransitionText):
-                print(r'\node[%s] at (%d,%d) (%s) {%s};' % (cls, node.col,
-                                                            -node.row, node,
-                                                            node.text),
-                      file=outfile)
-            else:
-                lines = node.text.splitlines()
-                # the first line is a command, the rest are subtexts
-                lines[0] = r'\small{\texttt{%s}}' % lines[0]
-                for i in xrange(1, len(lines)):
-                    lines[i] = r'\scriptsize\emph{%s}' % lines[i]
-                print('\\draw[double, double equal sign distance, -Implies] '
-                      '(%d,%d) -- node[anchor=west, align=left] (%s) {%s} '
-                      '++(0,%d);' % (node.col + 1, -(node.row - 1), node,
-                                     '\\\\'.join(lines), -(len(lines) + 1)),
-                      file=outfile)
+            node.tikz(outfile)
 
         for node in self.nodes:
             # output the edges
