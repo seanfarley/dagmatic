@@ -1,126 +1,77 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from __future__ import print_function
 
 import sys
 import re
 
+from nodes import TransitionText, Node, Style
+from edges import types
+
 # We're looking for node labels (runs of alphanumeric chars) and the edges
 # between them. E.g. given a line like "  \ a-b  :", the tokens of interest
 # are \, a, -, b, :. This regex is a good place to start (but now we have
 # two problems).
-nodefind_re = re.compile(r'([a-zA-Z0-9\']+)')
+nodefind_re = re.compile(r'([a-zA-Z0-9\'^]+)')
 
 
-def parse(infile):
+def parse(text):
     '''Read a sequence of lines. Return a DAGList.
     '''
     # First step: turn input lines into a "grid" of character cells.
     # grid[i][j] tells us what is occupying cell (i,j): either a node
     # or a single non-node character.
-    grid = _read_grid(infile)
-    print('grid:')
-    for line in grid:
-        print(line)
+    text = text.splitlines()
+    grid = _read_grid(text)
+    nodes = []
 
     # Now turn the grid into an AST-like thing: the DAGList.
-    return _make_daglist(grid)
+    for (row, line) in enumerate(grid):
+        for (col, ch) in enumerate(line):
+            ch.parse(nodes, grid, row, col)
+
+    nodemap = {node.name: node for node in nodes}
+    return DAG(nodemap)
 
 
 def _read_grid(infile):
     grid = []
+    style = ''
     for line in infile:
         grid.append([])
         currow = grid[-1]
-        chunks = nodefind_re.split(line.rstrip())
-        for (idx, chunk) in enumerate(chunks):
-            if idx % 2 == 1:            # must be a node (run of alphanumeric)
-                node = Node(chunk)
-                currow += [node] * len(chunk)
-            else:
-                # Must preserve every input char because of the visual
-                # nature of the input language -- need grid[i][j] to be
-                # useful!
-                currow += list(chunk)
+        if line.lstrip().startswith('||'):
+            ws, text = line.split('||')
+            currow += [types[c] for c in ws]
+            currow += [types['||'], TransitionText(text.strip())]
+        elif line.lstrip().startswith('{') or style:
+            style += line.strip()
+            if line.rstrip().endswith('}'):
+                nodestyle = Style()
+                # parse the dictionary
+                style = style.strip('{')
+                style = style.strip('}')
+                for kv in style.split(','):
+                    if not kv.strip():
+                        continue
+                    key, val = kv.split(':', 1)
+                    nodestyle[key.strip()] = val.strip()
+                currow += [nodestyle]
+
+                style = ''
+        else:
+            chunks = nodefind_re.split(line.rstrip())
+
+            for (idx, chunk) in enumerate(chunks):
+                if idx % 2 == 1:  # must be a node (run of alphanumeric)
+                    node = Node(chunk)
+                    currow += [node] * len(chunk)
+                else:
+                    # Must preserve every input char because of the visual
+                    # nature of the input language -- need grid[i][j] to be
+                    # useful!
+                    currow += [types[c] for c in chunk]
     return grid
-
-
-def _make_daglist(grid):
-    row = col = None
-
-    def err(msg):
-        return DAGSyntaxError(row, col, msg)
-
-    nodes = set()
-
-    for (row, line) in enumerate(grid):
-        for (col, ch) in enumerate(line):
-            if ch == '-':
-                if col == 0:
-                    raise err('horizontal edge at start of line')
-                elif col == len(line) - 1:
-                    raise err('horizontal edge at end of line')
-
-                parent = line[col - 1]
-                child = line[col + 1]
-                if not (isinstance(parent, Node) and isinstance(child, Node)):
-                    raise err('horizontal edge connected to garbage')
-                child.parents.append(parent)
-            elif ch == '\\':
-                if row == 0:
-                    raise err('diagonal edge on first line')
-                elif row == len(grid) - 1:
-                    raise err('diagonal edge on last line')
-                elif col == 0:
-                    raise err('diagonal edge at start of line')
-                elif col >= len(grid[row + 1]):
-                    raise err('diagonal edge points past end of next line')
-
-                parent = grid[row - 1][col - 1]
-                child = grid[row + 1][col + 1]
-                if not (isinstance(parent, Node) and isinstance(child, Node)):
-                    raise err('diagonal edge connected to garbage')
-                child.parents.append(parent)
-            elif ch == ':':
-                if row == 0:
-                    raise err('obsolescence marker on first line')
-                elif row == len(grid) - 1:
-                    raise err('obsolescence marker on last line')
-                elif col >= len(grid[row + 1]):
-                    raise err('obsolescence marker points past '
-                              'end of next line')
-
-                precursor = grid[row - 1][col]
-                successor = grid[row + 1][col]
-                if not (isinstance(precursor, Node) and
-                        isinstance(successor, Node)):
-                    raise err('obsolescence marker connected to garbage')
-                successor.precursors.append(precursor)
-            elif isinstance(ch, Node):
-                nodes.add(ch)
-
-    nodemap = {node.name: node for node in nodes}
-    return [DAG(nodemap)]
-
-
-class DAGSyntaxError(Exception):
-    def __init__(self, row, col, msg):
-        self.row = row
-        self.col = col
-        super(DAGSyntaxError, self).__init__(msg)
-
-
-class Node(object):
-    def __init__(self, name):
-        self.name = name
-        self.parents = []               # list of Node
-        self.precursors = []            # list of Node
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return '<Node: %s>' % (self.name,)
 
 
 class DAG(object):
@@ -148,14 +99,29 @@ class DAG(object):
             if node.precursors:
                 precursors = ','.join(str(p) for p in node.precursors)
                 obs = ' (obsoletes %s)' % (precursors,)
-            print('%s -> %s%s' % (node, parents, obs), file=outfile)
+            print('%s[%d, %d] -> %s%s' % (node, node.row, node.col, parents,
+                                          obs), file=outfile)
+
+    def tikz(self, outfile):
+        # need to do two passes so that all nodes are defined first
+        for node in self.nodemap.values():
+            node.tikz(outfile)
+
+        for node in self.nodemap.values():
+            # output the edges
+            for p in node.parents:
+                print(r'\draw[edge] (%s) -- (%s);' % (p, node), file=outfile)
+
+            # output the obsolete edges
+            for p in node.precursors:
+                print(r'\draw[markeredge] (%s) -- (%s);' % (p, node),
+                      file=outfile)
 
 
 def main():
-    daglist = parse(sys.stdin)
-    for dag in daglist:
-        print('dag:')
-        dag.dump(sys.stdout)
+    dag = parse(sys.stdin.read())
+    print('dag:')
+    dag.dump(sys.stdout)
 
 
 if __name__ == '__main__':

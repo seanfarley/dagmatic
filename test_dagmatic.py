@@ -76,10 +76,8 @@ a-b-3-x
     _assert_precursors(dag, '7', [])
 
 
-def _parse_one(input):
-    daglist = dagmatic.parse(input.splitlines())
-    nt.assert_equal(len(daglist), 1)
-    return daglist[0]
+def _parse_one(text):
+    return dagmatic.parse(text)
 
 
 def _assert_parents(dag, name, expect):
