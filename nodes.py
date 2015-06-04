@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+
 class DAGSyntaxError(Exception):
     def __init__(self, row, col, msg):
         self.row = row

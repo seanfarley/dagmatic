@@ -1,5 +1,6 @@
 import nodes
 
+
 class Spacer(object):
     def __init__(self, edge):
         self.edge = edge
@@ -12,6 +13,7 @@ class Spacer(object):
 
     def __repr__(self):
         return '<Edge: %s>' % (self.edge,)
+
 
 class Edge(Spacer):
     def checkbounds(self, grid, row, col):
@@ -42,11 +44,13 @@ class Edge(Spacer):
 
         return self.connect(parent, child)
 
+
 class Marker(Edge):
     def connect(self, parent, child):
         parent.precursors.append(child)
         child.obsolete = True
         return parent, child
+
 
 class HorizontalEdge(Edge):
     def __init__(self, edge='-'):
@@ -67,6 +71,7 @@ class HorizontalEdge(Edge):
     def parsenodes(self, grid, row, col):
         return grid[row][col - 1], grid[row][col + 1]
 
+
 class VerticalEdge(Edge):
     def __init__(self, edge='|'):
         super(VerticalEdge, self).__init__(edge)
@@ -82,10 +87,12 @@ class VerticalEdge(Edge):
             raise nodes.DAGSyntaxError(row, col,
                                        '%s start on first line' % self)
         elif row == len(grid) - 1:
-            raise nodes.DAGSyntaxError(row, col, '%s start on last line' % self)
+            raise nodes.DAGSyntaxError(row, col,
+                                       '%s start on last line' % self)
 
     def parsenodes(self, grid, row, col):
         return grid[row + 1][col], grid[row - 1][col]
+
 
 class LowerDiagonalEdge(Edge):
     def __init__(self, edge='\\'):
@@ -102,15 +109,18 @@ class LowerDiagonalEdge(Edge):
             raise nodes.DAGSyntaxError(row, col,
                                        '%s start on first line' % self)
         elif row == len(grid) - 1:
-            raise nodes.DAGSyntaxError(row, col, '%s start on last line' % self)
+            raise nodes.DAGSyntaxError(row, col,
+                                       '%s start on last line' % self)
         elif col == 0:
             raise nodes.DAGSyntaxError(row, col, '%s start of line' % self)
         elif col >= len(grid[row + 1]):
             raise nodes.DAGSyntaxError(row, col,
-                                       '%s points past end of next line' % self)
+                                       '%s points past end of next line'
+                                       % self)
 
     def parsenodes(self, grid, row, col):
         return grid[row - 1][col - 1], grid[row + 1][col + 1]
+
 
 class UpperDiagonalEdge(Edge):
     def __init__(self, edge='/'):
@@ -127,15 +137,19 @@ class UpperDiagonalEdge(Edge):
             raise nodes.DAGSyntaxError(row, col,
                                        '%s start on first line' % self)
         elif row == len(grid) - 1:
-            raise nodes.DAGSyntaxError(row, col, '%s start on last line' % self)
+            raise nodes.DAGSyntaxError(row, col,
+                                       '%s start on last line' % self)
         elif col == 0:
-            raise nodes.DAGSyntaxError(row, col, '%s start of line' % self)
+            raise nodes.DAGSyntaxError(row, col,
+                                       '%s start of line' % self)
         elif col >= len(grid[row - 1]):
             raise nodes.DAGSyntaxError(row, col,
-                                       '%s points past end of next line' % self)
+                                       '%s points past end of next line'
+                                       % self)
 
     def parsenodes(self, grid, row, col):
         return grid[row + 1][col - 1], grid[row - 1][col + 1]
+
 
 class HorizontalMarker(HorizontalEdge, Marker):
     def __init__(self, edge='.'):
@@ -147,6 +161,7 @@ class HorizontalMarker(HorizontalEdge, Marker):
     def __repr__(self):
         return '<HorizontalMarker>'
 
+
 class VerticalMarker(VerticalEdge, Marker):
     def __init__(self, edge=':'):
         super(VerticalMarker, self).__init__(':')
@@ -157,6 +172,7 @@ class VerticalMarker(VerticalEdge, Marker):
     def __repr__(self):
         return '<VerticalMarker>'
 
+
 class LowerDiagonalMarker(LowerDiagonalEdge, Marker):
     def __init__(self, edge='<'):
         super(LowerDiagonalMarker, self).__init__('<')
@@ -166,6 +182,7 @@ class LowerDiagonalMarker(LowerDiagonalEdge, Marker):
 
     def __repr__(self):
         return '<LowerDiagonalMarker>'
+
 
 class UpperDiagonalMarker(UpperDiagonalEdge, Marker):
     def __init__(self, edge='>'):
