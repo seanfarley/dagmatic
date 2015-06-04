@@ -19,11 +19,11 @@ class Edge(Spacer):
     def checkbounds(self, grid, row, col):
         pass
 
-    def checknodes(self, n1, n2):
+    def checknodes(self, n1, n2, row, col):
         '''every edge needs to connect two nodes'''
         if not (isinstance(n1, nodes.Node) and isinstance(n2, nodes.Node)):
-            return '%s connected to garbage' % self
-        return ''
+            raise nodes.DAGSyntaxError(row, col,
+                                       '%s connected to garbage' % self)
 
     def parsenodes(self, grid, row, col):
         return None, None
@@ -33,14 +33,9 @@ class Edge(Spacer):
         return parent, child
 
     def parse(self, nodes, grid, row, col):
-        msg = self.checkbounds(grid, row, col)
-        if msg:
-            raise nodes.DAGSyntaxError(row, col, msg)
-
+        self.checkbounds(grid, row, col)
         parent, child = self.parsenodes(grid, row, col)
-        msg = self.checknodes(parent, child)
-        if msg:
-            raise nodes.DAGSyntaxError(row, col, msg)
+        self.checknodes(parent, child, row, col)
 
         return self.connect(parent, child)
 
