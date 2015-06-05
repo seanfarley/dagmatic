@@ -42,8 +42,8 @@ class Edge(Spacer):
 
 class Marker(Edge):
     def connect(self, parent, child):
-        parent.precursors.append(child)
-        child.obsolete = True
+        child.precursors.append(parent)
+        parent.obsolete = True
         return parent, child
 
 
@@ -167,6 +167,9 @@ class VerticalMarker(VerticalEdge, Marker):
     def __repr__(self):
         return '<VerticalMarker>'
 
+    def parsenodes(self, grid, row, col):
+        return grid[row - 1][col], grid[row + 1][col]
+
 
 class LowerDiagonalMarker(LowerDiagonalEdge, Marker):
     def __init__(self, edge='<'):
@@ -188,6 +191,9 @@ class UpperDiagonalMarker(UpperDiagonalEdge, Marker):
 
     def __repr__(self):
         return '<UpperDiagonalMarker>'
+
+    def parsenodes(self, grid, row, col):
+        return grid[row - 1][col + 1], grid[row + 1][col - 1]
 
 types = {
     '': Spacer(''),

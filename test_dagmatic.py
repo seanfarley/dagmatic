@@ -75,6 +75,45 @@ a-b-3-x
     _assert_precursors(dag, '6', ['5'])
     _assert_precursors(dag, '7', [])
 
+def test_text_transition():
+    input = r'''
+  a-b
+
+  || hg commit --amend
+  || (safe, using evolve)
+
+  a-b.c
+   \:
+    b'
+'''
+    dag = _parse_one(input)
+    _assert_parents(dag, 'a', [])
+    _assert_parents(dag, 'b', ['a'])
+    _assert_parents(dag, "b'", ['a'])
+    _assert_parents(dag, 'c', [])
+    _assert_precursors(dag, 'a', [])
+    _assert_precursors(dag, "b'", ['b'])
+    _assert_precursors(dag, 'c', ['b'])
+
+
+def test_diagonal_obsolete_markers():
+    input = r'''
+      f
+      |
+    d-e
+   /
+  a-b-c^T
+   <:>
+    b'
+'''
+    dag = _parse_one(input)
+    _assert_parents(dag, 'a', [])
+    _assert_parents(dag, 'b', ['a'])
+    _assert_parents(dag, 'c', ['b'])
+    _assert_parents(dag, "b'", [])
+    _assert_precursors(dag, "b'", ['a', 'b', 'c'])
+    _assert_obsolete(dag, ['a', 'b', 'c'])
+
 
 def _parse_one(text):
     return dagmatic.parse(text)
@@ -88,3 +127,7 @@ def _assert_parents(dag, name, expect):
 def _assert_precursors(dag, name, expect):
     actual = dag.get_precursor_names(name)
     nt.assert_items_equal(actual, expect)
+
+def _assert_obsolete(dag, name):
+    for i in name:
+        nt.assert_items_equal([dag[i].obsolete], [True])
