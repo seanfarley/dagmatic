@@ -30,7 +30,7 @@ def parse(text):
         for (col, ch) in enumerate(line):
             ch.parse(nodes, grid, row, col)
 
-    nodemap = {node.name: node for node in nodes}
+    nodemap = {str(node): node for node in nodes}
     return DAG(nodemap)
 
 
@@ -81,16 +81,35 @@ class DAG(object):
     '''
     def __init__(self, nodemap):
         self.nodemap = nodemap              # map node name to Node
+        self._nodes = None
+
+    @property
+    def nodes(self):
+        if self._nodes is None:
+            self._nodes = [n.name for n in self.nodemap.values()]
+        return self._nodes
+
+    def __getitem__(self, name):
+        '''a naive way to get a node: search for the exact name, fallback
+        to searching through all the nodes
+        '''
+        ret = self.nodemap.get(name)
+        if ret is None:
+            for n in self.nodemap.values():
+                if n.name == name:
+                    ret = n
+                    break
+        return ret
 
     def get_parent_names(self, name):
         '''return parents of specified node as str (node names)'''
         return [parent.name
-                for parent in self.nodemap.get(name).parents]
+                for parent in self[name].parents]
 
     def get_precursor_names(self, name):
         '''return precursors of specified node as str (node names)'''
         return [precursor.name
-                for precursor in self.nodemap.get(name).precursors]
+                for precursor in self[name].precursors]
 
     def dump(self, outfile):
         for node in self.nodemap.values():

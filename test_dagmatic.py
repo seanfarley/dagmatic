@@ -10,7 +10,7 @@ def test_readme_1_simple():
        d-e
 '''
     dag = _parse_one(input)
-    nt.assert_items_equal(dag.nodemap, ['a', 'b', 'c', 'd', 'e'])
+    nt.assert_items_equal(dag.nodes, ['a', 'b', 'c', 'd', 'e'])
     _assert_parents(dag, 'a', [])
     _assert_parents(dag, 'b', ['a'])
     _assert_parents(dag, 'c', ['b'])
@@ -25,7 +25,7 @@ def test_readme_2_obsolescence():
     d-e
 '''
     dag = _parse_one(input)
-    nt.assert_items_equal(dag.nodemap, ['a', 'b', 'c', 'd', 'e'])
+    nt.assert_items_equal(dag.nodes, ['a', 'b', 'c', 'd', 'e'])
     _assert_parents(dag, 'd', ['a'])
     _assert_precursors(dag, 'a', [])
     _assert_precursors(dag, 'b', [])
