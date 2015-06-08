@@ -2,7 +2,6 @@
 
 from __future__ import print_function
 
-import cStringIO
 import dagmatic
 
 tikzdoc = r'''
@@ -97,7 +96,5 @@ if __name__ == '__main__':
     d
 '''
 
-    output = cStringIO.StringIO()
     dag = dagmatic.parse(asciidag)
-    dag.tikz(output)
-    print(tikzdoc % output.getvalue())
+    print(tikzdoc % dag.tikz_string())

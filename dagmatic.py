@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import sys
 import re
+import cStringIO
 
 from nodes import TransitionText, Node, Style
 from edges import types
@@ -136,6 +137,10 @@ class DAG(object):
                 print(r'\draw[markeredge] (%s) -- (%s);' % (p, node),
                       file=outfile)
 
+    def tikz_string(self):
+        output = cStringIO.StringIO()
+        self.tikz(output)
+        return output.getvalue()
 
 def main():
     dag = parse(sys.stdin.read())
