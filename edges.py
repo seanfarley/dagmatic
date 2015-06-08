@@ -88,6 +88,13 @@ class VerticalEdge(Edge):
     def parsenodes(self, grid, row, col):
         return grid[row + 1][col], grid[row - 1][col]
 
+    def connect(self, parent, child):
+        if child.parents:
+            parent.parents.append(child)
+        else:
+            child.parents.append(parent)
+        return parent, child
+
 
 class LowerDiagonalEdge(Edge):
     def __init__(self, edge='\\'):
@@ -170,6 +177,10 @@ class VerticalMarker(VerticalEdge, Marker):
     def parsenodes(self, grid, row, col):
         return grid[row - 1][col], grid[row + 1][col]
 
+    def connect(self, parent, child):
+        child.precursors.append(parent)
+        parent.obsolete = True
+        return parent, child
 
 class LowerDiagonalMarker(LowerDiagonalEdge, Marker):
     def __init__(self, edge='<'):
